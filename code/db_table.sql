@@ -34,3 +34,23 @@ SHOW CREATE TABLE `student`;
 
 -- describe table structure
 DESC student;
+
+
+-- alter table name
+ALTER TABLE teacher RENAME AS teacher1;
+-- alter table to add another feature
+ALTER TABLE teacher 1 ADD age INT(11);
+-- alter constraints of a feature
+ALTER TABLE teacher1 MODIFY age VARCHAR(11);
+-- rename a feature
+ALTER TABLE teacher1 CHANGE age age1 INT(11);
+
+
+
+-- delete a feature
+ALTER TABLE teacher1 DROP age1;
+
+-- delete a table
+DROP TABLE IF EXISTS teacher1;
+
+
