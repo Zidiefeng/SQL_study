@@ -265,3 +265,96 @@ COMMIT;
 ROLLBACK;
 
 SET autocommit =1;
+
+
+
+
+
+-- ----------index
+-- 添加index
+ALTER TABLE `school`.`student` ADD FULLTEXT INDEX `studentName`(`studentName`);
+
+-- show all index
+SHOW INDEX FROM student;
+
+--  analyze SQL status
+EXPLAIN SELECT * FROM student; -- 非全文索引
+
+EXPLAIN SELECT * FROM student WHERE MATCH(studentName) AGAINST('赵'); -- 全文索引
+SELECT * FROM student WHERE MATCH(studentName) AGAINST('赵'); 
+
+
+-- --------------------
+CREATE TABLE `app_user` (
+`id` BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT,
+`name` VARCHAR(50) DEFAULT '' COMMENT '用户昵称',
+`email` VARCHAR(50) NOT NULL COMMENT '用户邮箱',
+`phone` VARCHAR(20) DEFAULT '' COMMENT '手机号',
+`gender` TINYINT(4) UNSIGNED DEFAULT '0' COMMENT '性别（0：男;1:女）',
+`password` VARCHAR(100) NOT NULL COMMENT '密码',
+`age` TINYINT(4) DEFAULT '0'  COMMENT '年龄',
+`create_time` DATETIME DEFAULT CURRENT_TIMESTAMP,
+`update_time` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+PRIMARY KEY (`id`)
+) ENGINE=INNODB DEFAULT CHARSET=utf8 COMMENT ='app用户表';
+
+USE app_user;
+
+-- insert 1m rows
+DELIMITER $$ -- start func
+CREATE FUNCTION mock_data()
+RETURNS INT
+DETERMINISTIC
+BEGIN
+	DECLARE num INT DEFAULT 1000000;
+	DECLARE i INT DEFAULT 0;
+	WHILE i<num DO
+		-- insert SQL
+		INSERT INTO app_user(`name`,`email`,`phone`,`gender`,`password`,`age`)
+		VALUES(CONCAT('user_',i), 
+			'gg@gmail.com',
+			CONCAT('18',FLOOR(RAND()*899999999+100000000)), -- create a 9-digit num
+			FLOOR(RAND()*2), -- 0~2 生成 0 or 1 
+			UUID(), -- password
+			FLOOR(RAND()*100)
+			);
+		SET i = i+1;
+	END WHILE;
+	RETURN i;
+END $$
+SELECT mock_data();
+
+
+SELECT * FROM app_user WHERE `name`='user_100999'; -- 开始慢了，0.970 sec
+EXPLAIN SELECT * FROM app_user WHERE `name`='user_99999'; -- rows 992237行才找到ta
+
+-- create index
+CREATE INDEX id_app_user_name ON app_user(`name`);
+SELECT * FROM app_user WHERE `name`='user_99999'; 
+
+SHOW INDEX FROM student;
+
+
+-- ----------user manager
+--  create user (by pwd)
+CREATE USER kaikai IDENTIFIED BY 'root';
+
+-- update pwd of current user (not working in new version)
+SET PASSWORD = PASSWORD('root');
+
+-- new version of pwd update
+-- alter user "root"@"localhost" identified by "new_pwd"
+ALTER USER 'kaikai' IDENTIFIED BY 'root';
+
+-- update pwd (not working in new version)
+SET PASSWORD FOR 'kaikai' = PASSWORD('root');
+
+-- rename user
+RENAME USER kaikai TO kai;
+
+-- grant right
+GRANT ALL PRIVILEGES ON *.* TO kai;
+
+-- show grants
+SHOW GRANTS FOR kai;
+SHOW GRANTS FOR root@localhost;
