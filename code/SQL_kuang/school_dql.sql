@@ -358,3 +358,10 @@ GRANT ALL PRIVILEGES ON *.* TO kai;
 -- show grants
 SHOW GRANTS FOR kai;
 SHOW GRANTS FOR root@localhost;
+
+-- revoke right
+REVOKE ALL PRIVILEGES ON *.* FROM kai;
+
+-- delete user
+DROP USER kai;
+
